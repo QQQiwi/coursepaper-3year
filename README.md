@@ -44,5 +44,3 @@ https://arxiv.org/pdf/1607.08822.pdf
 https://www.freecodecamp.org/news/building-an-image-caption-generator-with-deep-learning-in-tensorflow-a142722e9b1f/
 
 https://www.ripublication.com/ijaer18/ijaerv13n9_102.pdf
-
-Хотелось бы попросить у вас совета о том, целесообразно ли будет взять первый вариант в качестве темы для курсовой? Следует ли эту тему как-то доработать, или же, может быть, стоит взять второй вариант, который попроще первого?
