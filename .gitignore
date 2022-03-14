@@ -7,3 +7,7 @@
 /model_ver_1/train2014/
 /model_ver_1/val2014/
 /model_ver_1/vectors/
+/model_ver_2/my_checkpoint.pth.tar
+/.vscode/
+/model_ver_2/test/
+/test/
