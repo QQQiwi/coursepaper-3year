@@ -11,3 +11,4 @@
 /.vscode/
 /model_ver_2/test/
 /test/
+/model_ver_2/my_checkpoint_100.pth.tar

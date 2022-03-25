@@ -21,7 +21,7 @@ def train():
 
     train_loader, dataset = get_loader(
         root_folder="archive/images",
-        annotation_file="archive/captions.txt",
+        annotation_file="archive/training_captions.txt",
         transform=transform,
         num_workers=6,
     )
@@ -29,10 +29,10 @@ def train():
     torch.backends.cudnn.benchmark = True
     print("cuda: ", torch.cuda.is_available())
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # load_model = False
-    # save_model = True
-    load_model = True
-    save_model = False
+    load_model = False
+    save_model = True
+    # load_model = True
+    # save_model = False
 
     # Гиперпараметры
     embedding_size = 256
@@ -46,13 +46,12 @@ def train():
     writer = SummaryWriter("runs/flickr")
     step = 0
 
-    # инициализация моделей, лосс функции и т.д.
+    # инициализация моделей, функции потерь и т.д.
     model = CNNtoRNNTranslator(embedding_size, hidden_size, vocabulary_size, num_layers).to(device)
     criterion = nn.CrossEntropyLoss(ignore_index=dataset.vocabulary.stoi["<PAD>"])
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     if load_model:
-        # step = load_checkpoint(torch.load("my_checkpoint.pth.tar"), model, optimizer)
         checkpoint = torch.load("my_checkpoint.pth.tar")
         model.load_state_dict(checkpoint["state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer"])
@@ -60,16 +59,16 @@ def train():
 
     model.train()
 
-    for epoch in range(num_epochs):
+    for epoch in range(num_epochs + 1):
         print("Epoch: ", epoch)
 
-        if save_model:
+        if save_model and (epoch % 10 == 0):
             checkpoint = {
                 "state_dict": model.state_dict(),
                 "optimizer": optimizer.state_dict(),
                 "step": step,
             }
-            torch.save(checkpoint, "my_checkpoint.pth.tar")
+            torch.save(checkpoint, f"my_checkpoint_{epoch}.pth.tar")
 
         for idx, (imgs, captions) in enumerate(train_loader):
             imgs = imgs.to(device)
