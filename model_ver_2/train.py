@@ -10,6 +10,12 @@ from get_loader import get_loader
 
 
 def train():
+    """
+        Функция осуществляет процесс обучения модели машинного обучения.
+
+    """
+
+    # преобразования, которым подлежат изображения
     transform = transforms.Compose(
         [
             transforms.Resize((356, 356)),
@@ -19,6 +25,8 @@ def train():
         ]
     )
 
+    # определение объектов загрузчика данных с объектом датасета с учетом пути к нужным файлам и заданными
+    # преобразованиями изображений
     train_loader, dataset = get_loader(
         root_folder="archive/images",
         annotation_file="archive/training_captions.txt",
@@ -26,15 +34,14 @@ def train():
         num_workers=6,
     )
 
+    # обучение будет происходит с помощью технологии Cuda
     torch.backends.cudnn.benchmark = True
     print("cuda: ", torch.cuda.is_available())
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     load_model = False
     save_model = True
-    # load_model = True
-    # save_model = False
 
-    # Гиперпараметры
+    # задача гиперпараметров
     embedding_size = 256
     hidden_size = 256
     vocabulary_size = len(dataset.vocabulary)
@@ -42,26 +49,29 @@ def train():
     learning_rate = 3e-4
     num_epochs = 100
 
-    # для tensorboard
+    # в процессе обучения будут сохраняться характеристики, отображаемые с помощью tensorboard
     writer = SummaryWriter("runs/flickr")
     step = 0
 
-    # инициализация моделей, функции потерь и т.д.
+    # инициализация модели, функции потерь и оптимизатора
     model = CNNtoRNNTranslator(embedding_size, hidden_size, vocabulary_size, num_layers).to(device)
     criterion = nn.CrossEntropyLoss(ignore_index=dataset.vocabulary.stoi["<PAD>"])
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+    # подразумевается возможность загрузки весов модели
     if load_model:
         checkpoint = torch.load("my_checkpoint.pth.tar")
         model.load_state_dict(checkpoint["state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer"])
         step = checkpoint["step"]
 
+    # включение режима обучения модели
     model.train()
 
     for epoch in range(num_epochs + 1):
         print("Epoch: ", epoch)
 
+        # сохранение параметров модели каждые 10 эпох с учетом булевой переменной
         if save_model and (epoch % 10 == 0):
             checkpoint = {
                 "state_dict": model.state_dict(),
@@ -77,6 +87,7 @@ def train():
             outputs = model(imgs, captions[:-1])
             loss = criterion(outputs.reshape(-1, outputs.shape[2]), captions.reshape(-1))
 
+            # сохранение значения функции потерь для формирования графика с помощью tensorboard
             writer.add_scalar("Training loss", loss.item(), global_step=step)
             step += 1
 
