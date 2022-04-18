@@ -6,7 +6,7 @@ import tensorboard
 from torch.utils.tensorboard import SummaryWriter
 # from utils import save_checkpoint, load_checkpoint, print_examples
 from model import CNNtoRNNTranslator
-from get_loader import get_loader
+from getloader import get_loader
 
 
 def train():
