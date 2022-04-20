@@ -25,8 +25,8 @@ def train():
         ]
     )
 
-    # определение объектов загрузчика данных с объектом датасета с учетом пути к нужным файлам и заданными
-    # преобразованиями изображений
+    # определение объектов загрузчика данных с объектом датасета с учетом пути
+    # к нужным файлам и заданными преобразованиями изображений
     train_loader, dataset = get_loader(
         root_folder="archive/images",
         annotation_file="archive/training_captions.txt",
@@ -49,12 +49,16 @@ def train():
     learning_rate = 3e-4
     num_epochs = 100
 
-    # в процессе обучения будут сохраняться характеристики, отображаемые с помощью tensorboard
+    # в процессе обучения будут сохраняться характеристики,
+    # отображаемые с помощью tensorboard
     writer = SummaryWriter("runs/flickr")
     step = 0
 
     # инициализация модели, функции потерь и оптимизатора
-    model = CNNtoRNNTranslator(embedding_size, hidden_size, vocabulary_size, num_layers).to(device)
+    model = CNNtoRNNTranslator(embedding_size,
+                               hidden_size,
+                               vocabulary_size,
+                               num_layers).to(device)
     criterion = nn.CrossEntropyLoss(ignore_index=dataset.vocabulary.stoi["<PAD>"])
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
