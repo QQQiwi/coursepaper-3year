@@ -4,7 +4,6 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 import tensorboard
 from torch.utils.tensorboard import SummaryWriter
-# from utils import save_checkpoint, load_checkpoint, print_examples
 from model import CNNtoRNNTranslator
 from getloader import get_loader
 
@@ -45,13 +44,13 @@ def train():
     embedding_size = 256
     hidden_size = 256
     vocabulary_size = len(dataset.vocabulary)
-    num_layers = 1
-    learning_rate = 3e-4
+    num_layers = 4
+    learning_rate = 4e-4
     num_epochs = 100
 
     # в процессе обучения будут сохраняться характеристики,
     # отображаемые с помощью tensorboard
-    writer = SummaryWriter("runs/flickr")
+    writer = SummaryWriter(f"runs/flickr/nl_{num_layers}_lr_{learning_rate}")
     step = 0
 
     # инициализация модели, функции потерь и оптимизатора
@@ -82,7 +81,10 @@ def train():
                 "optimizer": optimizer.state_dict(),
                 "step": step,
             }
-            torch.save(checkpoint, f"my_checkpoint_{epoch}.pth.tar")
+            torch.save(checkpoint, f"my_checkpoint"
+                                   f"_epoc_{epoch}"
+                                   f"_nl_{num_layers}"
+                                   f"_lr_{learning_rate}.pth.tar")
 
         for idx, (imgs, captions) in enumerate(train_loader):
             imgs = imgs.to(device)
@@ -91,7 +93,8 @@ def train():
             outputs = model(imgs, captions[:-1])
             loss = criterion(outputs.reshape(-1, outputs.shape[2]), captions.reshape(-1))
 
-            # сохранение значения функции потерь для формирования графика с помощью tensorboard
+            # сохранение значения функции потерь для формирования графика
+            # с помощью tensorboard
             writer.add_scalar("Training loss", loss.item(), global_step=step)
             step += 1
 
