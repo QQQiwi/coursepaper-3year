@@ -34,7 +34,6 @@
 
 % --------------------------------------------------------------------------%
 
-
 \usepackage[T2A]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
@@ -63,6 +62,8 @@
 \usepackage{enumitem}
 \usepackage{tikz}
 \usepackage{minted}
+
+\setminted[py]{fontsize=\small, breaklines=true, style=bw, linenos}
 
 \newcommand{\eqdef}{\stackrel {\rm def}{=}}
 \newcommand{\specialcell}[2][c]{%
@@ -158,7 +159,7 @@
     алгоритмов в самых различных отраслях человеческой жизнедеятельности, что
     всё чаще человек использует ИИ, иногда даже не подозревая об этом. От
     нахождения кратчайшего пути из дома до аэропорта и прогнозирования погоды по
-    параметрам воздуха и вплоть до удовлетворения банковских услуг пользователя
+    параметрам воздуха, до удовлетворения банковских услуг пользователя
     с помощью автоответчика "--- всё это напрямую говорит об удивительном
     множестве возможностей использования искусственного интеллекта, которое
     постоянно расширяется.
@@ -236,7 +237,7 @@
     \textit{Текстовое описание к изображению} (англ. Image Captioning) "--- это
     задача описания содержания изображения словами естественного языка. Принцип
     решения лежит на пересечении таких разделов глубокого обучения как
-    компьютерного зрения и обработки естественного языка. В большинстве систем
+    компьютерное зрение и обработка естественного языка. В большинстве систем
     генерации текстовых описаний к изображениям используется структура
     кодировщик-декодер, в которой входное изображение кодируется в промежуточное
     представление информации о содержимом изображения, а затем декодируется в
@@ -273,21 +274,49 @@
         разработанные для традиционных ИНС, также могут быть применимы и в
         работе со сверточными нейросетями \cite{cnn1}. 
 
-        Принципиальное отличие обычной нейронной сети от сверточной является
-        наличие в последней специального ''сверточного'' слоя, который применяет
-        к входным весам математическую операцию свертки. Термин свертка
-        относится к математической комбинации двух функций для получения третьей
-        функции. В случае CNN свертка выполняется для входных данных с
-        использованием фильтра или ядра (эти термины взаимозаменяемы), чтобы
-        затем создать карту признаков (англ. feature map). Выполнение свертки
-        осуществляется перемещением фильтра по минорам входной матрицы. Для
-        каждого минора определенного размера выполняется матричное умножение с
-        соответствующим ему фильтром и суммируется результат на карте признаков. 
+        Особенностью сверточной нейронной сети является наличие в ней
+        специального ''сверточного'' слоя, который применяет к входным весам
+        математическую операцию свертки. Термин свертка относится к
+        математической комбинации двух функций для получения третьей функции. В
+        случае CNN свертка выполняется для входных данных с использованием
+        фильтра или ядра (эти термины взаимозаменяемы), чтобы затем создать
+        карту признаков (англ. feature map). Результат работы свертки в
+        простейшем случае (определяемый как $(N, C_{out}, H_{out}, W_{out})$), с
+        входными данными в формате $(N, C_{in}, H, W)$ можно выразить в виде
+        следующей формулы \cite{convolute}:
+        
+        \[out(N_i, C_{out_j}) = bias(C_{out_j}) + \sum_{k = 0}^{C_{in} - 1}
+        weight(C_{out_j}, k) \star input(N_i, k) ,\]
+
+        где $\star$ "--- оператор взаимнокорреляционной функции, $N$ "--- размер
+        тренировочной выборки, используемой в одной итерации (англ. batch size),
+        $C$ определяет количество каналов, $H$ это высота входных плоскостей в
+        пикселях, а $W$ "--- ширина этих плоскостей в пикселях. $H_{out}$ и
+        $W_{out}$ определяются следующим образом:
+        
+        \[H_{out} = \Bigl\lfloor \frac{H_{in} + 2 \times padding[0] -
+        dilation[0] \times (kernel\_size[0] - 1) - 1}{stride[0]} + 1
+        \Bigr\rfloor ;\]
+
+        \[W_{out} = \Bigl\lfloor \frac{W_{in} + 2 \times padding[1] -
+        dilation[1] \times (kernel\_size[1] - 1) - 1}{stride[1]} + 1
+        \Bigr\rfloor ,\]
+
+        где $stride$ определяет шаг для взаимной корреляции, является одним
+        числом или списком чисел; $padding$ управляет количеством ''отступов'',
+        применяемых к входным данным. Это может быть либо строка \{'новое
+        значение', 'старое значение'\}, либо список целых чисел, указывающий
+        количество неявного заполнения, применяемого с обеих сторон; $dilation$,
+        также известный как алгоритм à trous, задает расстояние между точками
+        ядра в процессе свертки; $kernel\_size$ "--- размер ядра.
+
+        Визуальная интерпретация операции свертки представлена на изображении
+        ниже.
 
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.8\textwidth]{pics/convolute.png}
-            \caption{Операция свёртки}
+            \caption{Операция свёртки \cite{cnnpic}}
         \end{figure}
 
         Операции свертки выполняются на входной матрице, где каждая операция
@@ -348,7 +377,7 @@
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.8\textwidth]{pics/rnn-vs-fnn.png}
-            \caption{Абстрактное сравнение архитектур FNN и RNN}
+            \caption{Абстрактное сравнение архитектур FNN и RNN \cite{rnnpic}}
         \end{figure}
 
         Однако при использовании первых архитектур RNN возникала проблема потери
@@ -370,9 +399,9 @@
         зависимостям. Название такого подкласса RNN "--- сеть с долгой
         краткосрочной памятью (англ. Long Short-Term Memory, LSTM).
 
-        Решение с помощью LSTM использует карусель с постоянными ошибками (англ.
-        Constant Error Carousel, CEC), которые обеспечивают постоянный поток
-        ошибок (необходимый для хранения значений ошибки для дальнейшего
+        Решение с помощью LSTM использует ''карусель с постоянными ошибками''
+        (англ. Constant Error Carousel, CEC), которые обеспечивают постоянный
+        поток ошибок (необходимый для хранения значений ошибки для дальнейшего
         обучения модели) в специальных ячейках. Доступ к ячейкам (и их
         применение) осуществляется мультипликативными блоками ворот (англ. gate
         units), которые учатся своевременно предоставлять этот доступ. CEC
@@ -393,8 +422,27 @@
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.8\textwidth]{pics/lstm.png}
-            \caption{Схема содержимого модуля LSTM-сети}
+            \caption{Схема содержимого модуля LSTM-сети \cite{lstm2}}
         \end{figure}
+
+        Таким образом, для каждого элемента входной последовательности каждый
+        $t$-ый слой LSTM модели осуществляет следующие вычисления
+        \cite{torchlstm}:
+
+        \[i_t = \sigma(W_{ii} x_t + b_{ii} + W_{hi} h_{t - 1} + b_{hi}) ;\]
+        \[f_t = \sigma(W_{if} x_t + b_{if} + W_{hf} h_{t - 1} + b_{hf}) ;\]
+        \[g_t = \tanh(W_{ig} x_t + b_{ig} + W_{hg} h_{t - 1} + b_{hg}) ;\]
+        \[o_t = \sigma(W_{io} x_t + b_{io} + W_{ho} h_{t - 1} + b_{ho}) ;\]
+        \[c_t = f_t \odot c_{t - 1} + i_t \odot g_t ;\]
+        \[h_t = o_t \odot \tanh(c_t) ,\]
+
+        где $h_t, c_t, x_t$ "--- скрытое состояние слоя модели, состояние клетки
+        и входной параметр в момент времени $t$ соответственно; $h_{t - 1}$
+        определяет скрытое состояние слоя в момент времени $t - 1$ или начальное
+        скрытое состояние в момент времени $o$. Элементы $i_t, f_t, g_t, o_t$
+        являются входными, забывающими, клеточными и выходными воротами
+        соответственно. Символ $\sigma$ определяет функцию сигмоиды, $\odot$
+        "--- поэлементное произведение, также называемое произведением Адамара.
 
         % Область применения
         РНС "--- это такой тип архитектуры нейронной сети, который
@@ -500,17 +548,17 @@
             \item
                 Средняя абсолютная ошибка (англ. Mean Absolute Error) "---
                 показывает разницу между двумя переменными.
-                \[MAE = \frac{\sum_{i = 1}^n |y - y'|}{n} \]
+                \[MAE = \frac{\sum_{i = 1}^n |y - y'|}{n} ;\]
             \item
                 Средняя квадратичная ошибка (англ. Mean Squared Error) "---
                 показывает средний квадрат ошибки модели.
-                \[MSE = \frac{\sum_{i = 1}^n (y - y')^2}{n} \]
+                \[MSE = \frac{\sum_{i = 1}^n (y - y')^2}{n} ;\]
             \item
                 Корень средней квадратичной ошибки (англ. Root Mean Squared
                 Error) "--- позволяет оценить качество модели с помощью метрики
                 $MSE$ в тех же единицах измерения, в которых определены $y$ и
                 $y'$.
-                \[RMSE = \sqrt{ \frac{\sum_{i = 1}^n (y - y')^2}{n}} \]
+                \[RMSE = \sqrt{ \frac{\sum_{i = 1}^n (y - y')^2}{n}} .\]
         \end{enumerate}
 
         Производительность классификаторов часто оценивается с помощью матрицы
@@ -522,7 +570,7 @@
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.6\textwidth]{pics/confusion-matrix.png}
-            \caption{Матрица неточностей}
+            \caption{Матрица неточностей \cite{confusionpic}}
         \end{figure}
 
         Каждый столбец в этой матрице означает предсказанные экземпляры, в то
@@ -536,17 +584,17 @@
                 это доля найденных классификатором сущностей, принадлежащих
                 конкретному классу, относительно всех сущностей этого класса в
                 выборке.
-                \[TPR = \frac{TP}{TP + FN}\]
+                \[TPR = \frac{TP}{TP + FN} ;\]
             \item
                 Точность (англ. Precision, а также Positive Predictive Value
                 или PPV) "--- это доля объектов, действительно принадлежащих
                 данному классу относительно всех объектов, которые модель
                 отнесла к этому классу.
-                \[PPV = \frac{TP}{TP + FP}\]
+                \[PPV = \frac{TP}{TP + FP} ;\]
             \item
                 Accuracy (ACC) "--- представляет отношение количества верных
                 предсказаний к общему количеству образцов выборки.
-                \[ACC = \frac{TP + TN}{TP + FP + TN + FN}\]
+                \[ACC = \frac{TP + TN}{TP + FP + TN + FN} .\]
         \end{enumerate}
 
         Показатели производительности (англ. performance metrics) или же меры
@@ -570,7 +618,7 @@
         \[sim(\textbf{y}, \textbf{y'}) = sim_{Cosine}(\textbf{y}, \textbf{y'}) =
         \frac{\langle \textbf{y}, \textbf{y'} \rangle}{\parallel \textbf{y}
         \parallel_2 \cdot \parallel \textbf{y'} \parallel_2 } = \frac{\sum_i y_i
-        y'_i}{\sqrt{\sum_i y^2_i} \cdot \sqrt{\sum_i y'^2_i}} = cos \theta \]
+        y'_i}{\sqrt{\sum_i y^2_i} \cdot \sqrt{\sum_i y'^2_i}} = cos \theta .\]
 
         Косинусный коэффициент имеет интересные особенности, которые делают его
         популярным приложением в различных задачах, среди которых наиболее часто
@@ -626,12 +674,23 @@
         известных методов современного машинного обучения занимаются подгонкой
         данных, которые не столько категориальны, сколько симплекснозначны "---
         например, в такой технике регуляризации обучения, как сглаживание меток
-        (англ. Label smoothing), и в работе с определением стратегии агента для
+        (англ. label smoothing), и в работе с определением стратегии агента для
         достижения целей в обучении с подкреплением. В этих методах сообщество
         глубокого обучения по умолчанию заимствовало ту же кросс-энтропийную
         функцию потерь из задачи с категориальными данными, несмотря на то, что
         он больше не определяет целесообразную вероятностную модель
-        \cite{celoss2}.
+        \cite{celoss2}. Определить перекрестную энтропийную функцию потерь,
+        используемую в практической части данной работы, можно следующей
+        формулой \cite{torchcel}:
+
+        \[l(x, y) = \sum_{n = 1}^{N} \frac{1}{\sum_{n = 1}^{N} w_{y_n} \cdot 1
+        \{y_n \neq ignore\_index \}} l_n , \]
+    
+        где $x$ и $y$ "--- это входные и целевые значения, веса заданы как $w$,
+        а $N$ определяет размер подмножества тренировочной выборки, используемой
+        в одной итерации (англ. minibatch size). Обозначение $ignore\_index$
+        является целевым значением, которое игнорируется и не влияет на входной
+        градиент.
 
     \subsection{Функции активации}
 
@@ -653,7 +712,7 @@
         функция в значениях от $0$ до $1$ или от $-1$ до $1$, результат нейрона
         может быть интерпретирован как 'да' или 'нет' (или в виде выбора между
         двумя значениями).
-        
+
         Стоит отметить, что одной из популярных проблем, связанных с функциями
         активации, является проблема ''насыщения''. Суть её определяется
         состоянием, в котором нейрон преимущественно выдает в качестве
@@ -678,13 +737,13 @@
 
         ReLU менее требовательно к вычислительным ресурсам, чем гиперболический
         тангенс или сигмоида, так как производит более простые математические
-        операции. Поэтому имеет смысл использовать ReLu при создании глубоких
+        операции. Поэтому имеет смысл использовать ReLU при создании глубоких
         нейронных сетей \cite{relu1}.
 
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.8\textwidth]{pics/ReLU.png}
-            \caption{Выпрямленная линейная единица (ReLU)}
+            \caption{Выпрямленная линейная единица (ReLU) \cite{relu3}}
         \end{figure}
 
     \subsection{Задачи, решаемые генерацией текстового описания к изображению с помощью нейронной сети}
@@ -723,7 +782,9 @@
                 Кроме того, подписи позволяют проверить, соответствует ли
                 изображение правилам платформы, на которой оно опубликовано.
                 Здесь они служат альтернативой категоризации с помощью CNN и
-                помогают увеличить трафик и доход.
+                помогают увеличить трафик и доход. Пример применения модели
+                генерации текстового описания для магазина одежды представлен на
+                изображении ниже.
             \item
                 Автоматические аннотации изображений для слепых людей. Чтобы
                 разработать такое решение, необходимо преобразовать картинку в
@@ -758,9 +819,8 @@
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.8\textwidth]{pics/example.png}
-            \caption{Пример применения модели генерации текстового описания для
-                     изображения "--- создание описания стиля одежды для
-                     магазина}
+            \caption{Создание описания стиля одежды для магазина с помощью
+            нейросети \cite{apppic}}
         \end{figure}
 
 \section{Практическая часть}
@@ -770,14 +830,16 @@
         % Python
         За последние несколько лет Python стал де-факто наиболее привлекательным
         языком для создания, обучения и работы с моделями глубокого обучения
-        посредством таких инструментов (англ. framework), как PyTorch,
-        TensorFlow, MxNet/TVM и JAX, которые в основном предоставляют интерфейсы
-        Python. Простота применения Python для написания кода и возможность его
-        распространения через такие пакетные менеджеры, как conda, упрощают
-        обмен библиотеками и результатами исследований. Его экосистема библиотек
-        для науки о данных, таких как NumPy, Pandas и Jupyter Notebook, упрощают
-        анализ результатов обучения моделей и анализ нейросети и данных в целом
-        \cite{python}.
+        посредством таких инструментов (англ. framework), как TensorFlow,
+        PyTorch, MxNet/TVM и JAX, которые в основном предоставляют интерфейсы
+        Python \cite{fwtf}, \cite{fwpytorch}, \cite{fwmxnet}, \cite{fwtvm},
+        \cite{fwjax}. Простота применения Python для написания кода и
+        возможность его распространения через такие пакетные менеджеры, как
+        conda, упрощают обмен библиотеками и результатами исследований. Его
+        экосистема библиотек для науки о данных, таких как NumPy, Pandas и
+        Jupyter Notebook, упрощают анализ результатов обучения моделей и анализ
+        нейросети и данных в целом \cite{python}, \cite{fwnumpy},
+        \cite{fwpandas}, \cite{fwjupyter}.
 
         % PIL
         Поскольку программная реализация напрямую подразумевает работу с
@@ -789,13 +851,13 @@
         инструментов была сведена к поиску подходящей библиотеки для работы с
         изображениями. Для данной задачи и удовлетворения необходимых
         потребностей была выбрана библиотека PIL (сокращение от Python Imaging
-        Library). PIL добавляет возможность обработки изображений в
+        Library) \cite{pil}. PIL добавляет возможность обработки изображений в
         интерпретатор Python. Эта библиотека обеспечивает обширную поддержку
         форматов файлов, эффективное внутреннее представление и довольно мощные
         возможности процессинга изображений. Основная библиотека изображений
         предназначена для быстрого доступа к данным, хранящимся в нескольких
         основных форматах пикселей. Это должно обеспечить прочную основу для
-        общего инструмента обработки изображений \cite{pil}.
+        общего инструмента обработки изображений.
 
         % Pandas
         Так как каждому изображению в обучающей и тестовой выборке должно
@@ -832,20 +894,20 @@
         тестирования модели, и контролировать генерацию текстовых описаний
         посредством сильного инструмента. SpaCy обеспечивает надежную
         архитектуру для создания и совместного использования пользовательских
-        высокопроизводительных конвейеров NLP (англ. pipeline), принимая
-        объектно-ориентированное представление текста. Он не деструктивен,
-        поддерживает плавную интеграцию статистических методов и методов
-        машинного обучения с NLP, построенном на основе правил, и позволяет
-        создавать пользовательские компоненты для специализированных задач.
-        Благодаря возможностям Cython, оптимизирующего статического компилятора
-        для Python, который генерирует очень эффективный код C или C++, spaCy
-        позволяет достичь исключительной скорости работы. Подобно подходу UIMA в
-        Java, spaCy предоставляет основу для модульного построения настраиваемых
-        конвейеров NLP по принципу plug-and-play. С момента своего создания в
-        2015 году, библиотека spaCy приобрела сильное, очень активное и растущее
-        сообщество разработчиков модулей с открытым исходным кодом, современными
-        моделями и комплексными системами, разработанными с помощью платформы
-        или для неё самой \cite{spacy}.
+        высокопроизводительных конвейеров (англ. pipeline) NLP, принимая
+        объектно-ориентированное представление текста \cite{spacy}. Он не
+        деструктивен, поддерживает плавную интеграцию статистических методов и
+        методов машинного обучения с NLP, построенном на основе правил, и
+        позволяет создавать пользовательские компоненты для специализированных
+        задач. Благодаря возможностям Cython, оптимизирующего статического
+        компилятора для Python, который генерирует очень эффективный код C или
+        C++, spaCy позволяет достичь исключительной скорости работы. Подобно
+        подходу UIMA в Java, spaCy предоставляет основу для модульного
+        построения настраиваемых конвейеров NLP по принципу plug-and-play. С
+        момента своего создания в 2015 году, библиотека spaCy приобрела сильное,
+        очень активное и растущее сообщество разработчиков модулей с открытым
+        исходным кодом, современными моделями и комплексными системами,
+        разработанными с помощью платформы или для неё самой.
         
         % PyTorch
         Фреймворки глубокого обучения часто фокусируются либо на удобстве своего
@@ -921,6 +983,14 @@
         исследовательских работ, связанных с генерацией текстового описания к
         изображению) \cite{dataset1}, \cite{dataset2}.
         
+        Набор данных находится в открытом доступе и его можно загрузить как с
+        официального сайта фотохостинга, так и с других различных форумов и
+        сайтов для машинного и глубокого обучения. В частности, для обучения
+        модели, описывающейся в данной работе, такая коллекция совместно с
+        файлом формата CSV, в котором осуществляется сопоставление названия
+        каждого изображения с одним из его текстовых описаний, была взята с
+        платформы Kaggle \cite{dataset3}.
+
         Набор представляет собой эталонную коллекцию для генерации текстового
         описания и поиска изображений на основе предложений на естественном
         языке, которая состоит из более чем 8000 изображений, каждое из которых
@@ -928,25 +998,19 @@
         описание фигурирующих на конкретном изображении объектов и событий.
         Изображения были выбраны из шести разных групп Flickr и, как правило, не
         содержат каких-либо известных людей или мест, а были отобраны вручную
-        для отображения различных мероприятий и ситуаций. Набор данных находится
-        в открытом доступе и его можно загрузить как с официального сайта
-        фотохостинга, так и с других различных форумов и сайтов для машинного и
-        глубокого обучения \cite{dataset3}. В частности, для обучения модели,
-        описывающейся в данной работе, была взята такая коллекция совместно с
-        файлом формата CSV, в котором осуществляется сопоставление названия
-        каждого изображения с одним из его текстовых описаний.
+        для отображения различных ситуаций.
 
         Эти данные будут в дальнейшем поделены на тренировочную и тестовую
         выборку, где первая выборка будет представлять собой 80\% от всего
         набора данных, а тестовая "--- всё остальное.
 
-        \begin{figure}[H]
-            \centering
-            \includegraphics[width=1\textwidth]{pics/dataset.png}
-            \caption{Содержимое CSV файла, в котором сопоставляется изображение
-                     с текстовым описанием}
-        \end{figure}
-
+        Пример части содержимого CSV-файла:
+        
+        \begin{minted}[fontsize=\footnotesize]{text}
+            image,caption
+            1000268201_693b08cb0e.jpg,A girl going into a wooden building 
+            1001773457_577c3a7d70.jpg,A black dog and a spotted dog are fighting
+        \end{minted}
 
     \subsection{Программная реализация алгоритма}
 
@@ -1003,9 +1067,9 @@
         % denote by $I$ the input image and by $S = S_0, ..., S_N$ a true sentence
         % describing this image, the unrolling procedure reads
 
-        \[X_{-1} = CNN(I) \]
-        \[x_t = W_e S_t, t \in \{0...N - 1 \} \]
-        \[p_{t + 1} = LSTM(x_t), t \in \{0...N - 1 \} \]
+        \[X_{-1} = CNN(I) ;\]
+        \[x_t = W_e S_t, t \in \{0...N - 1 \} ;\]
+        \[p_{t + 1} = LSTM(x_t), t \in \{0...N - 1 \} ,\]
 
         где каждое слово представляется унитарно закодированным вектором (англ.
         one-hot vector) размерности, равной размеру словаря. Следует отметить,
@@ -1024,7 +1088,7 @@
         \begin{figure}[H]
             \centering
             \includegraphics[width=1\textwidth]{pics/arch.png}
-            \caption{Архитектура программы}
+            \caption{Архитектура программы \cite{architecture}}
         \end{figure}
 
     \subsection{Приведение характеристик обучения и гиперпараметров}
@@ -1078,20 +1142,29 @@
         конкретному моменту времени. Используя эти параметры, можно построить
         график зависимости перекрестной энтропийной потери от времени
         (называемой кривой обучения), чтобы проследить, уменьшается ли значение
-        ошибки с каждой итерацией или нет.
+        ошибки с каждой итерацией или нет. Ниже представлено изображение, где
+        вдоль оси OY обозначены значения функции потерь, а вдоль оси OX "---
+        номера итерации. На этом графике бледной линией показано изменение
+        значения функции потерь с увеличением количества итераций, а жирной
+        линией представлено изменение экспоненциального скользящего среднего
+        этого значения, сглаживающая константа которого $\approx 0.94$. В конце
+        графика отображено несколько жирных линий "--- это связано с тем, что
+        модель на последних эпохах обучения была переучена, и из-за этого
+        значения номеров итераций при различных показателях функции потерь
+        совпадают. Исходя из представленного изображения, на качество работы
+        модели процесс переучивания не привел к существенному различию между
+        результатами.
         
         % график кривой обучения
         \begin{figure}[H]
             \centering
             \includegraphics[width=1\textwidth]{pics/curve.png}
-            \caption{График кривой обучения, где вдоль оси OY обозначены
-                     значения функции потерь, а вдоль оси OX "--- номер
-                     итерации}
+            \caption{График кривой обучения}
         \end{figure}
 
-        Согласно изображению выше можно сказать, что процесс обучения проходил
-        без каких-либо сложностей, и признаков недообучения и переобучения на
-        данном графике не обнаружено \cite{fitting}.
+        Согласно графику можно сказать, что процесс обучения проходил без
+        каких-либо сложностей, и признаков недообучения и переобучения на данном
+        графике не обнаружено \cite{fitting}.
 
         Для осуществления оценки работы модели с помощью выбранной ранее
         метрики, предварительно следует подчеркнуть создание функции, которая
@@ -1102,7 +1175,8 @@
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.6\textwidth]{pics/caption.png}
-            \caption{Пример генерации текстового описания}
+            \caption{Пример генерации текстового описания с помощью нейросети,
+                     созданной согласно данной работе}
         \end{figure}
 
         Используя методы библиотеки NumPy, можно создать метрику, упомянутую
@@ -1182,13 +1256,22 @@
     % https://arxiv.org/abs/1511.08458
     % https://www.freecodecamp.org/news/an-intuitive-guide-to-convolutional-neural-networks-260c2de0a050/
 
-    \bibitem{cnn1} Keiron O'Shea, Ryan Nash, ''An Introduction to Convolutional
-    Neural Networks'', [Электронный ресурс] : [статья] / URL
+    \bibitem{cnn1} O'Shea K., Nash R., ''An Introduction to Convolutional Neural
+    Networks'', [Электронный ресурс] : [статья] / URL
     https://arxiv.org/abs/1511.08458 (дата обращения 14.04.2022) Загл. с экрана.
     Яз. англ.
     
-    \bibitem{cnn2} Daphne Cornelisse, ''An intuitive guide to Convolutional
-    Neural Networks'', [Электронный ресурс] : [статья] / URL
+    \bibitem{convolute} ''Conv2D'', [Электронный ресурс] : [статья] / URL
+    https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html\#torch.nn.Conv2d
+    (дата обращения 17.05.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{cnnpic} Du S., ''Understanding Deep Self-attention Mechanism in
+    Convolution Neural Networks'', [Электронный ресурс] : [статья] / URL
+    https://medium.com/ai-salon/understanding-deep-self-attention-mechanism-in-convolution-neural-networks-e8f9c01cb251
+    (дата обращения 17.05.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{cnn2} Cornelisse D., ''An intuitive guide to Convolutional Neural
+    Networks'', [Электронный ресурс] : [статья] / URL
     https://www.freecodecamp.org/news/an-intuitive-guide-to-convolutional-neural-networks-260c2de0a050/
     (дата обращения 14.04.2022) Загл. с экрана. Яз. англ.
 
@@ -1196,98 +1279,123 @@
     % https://arxiv.org/pdf/1912.05911.pdf
     % https://www.ibm.com/cloud/learn/recurrent-neural-networks
     
-    \bibitem{rnn1} Robin M. Schmidt, ''Recurrent Neural Networks (RNNs): A
-    gentle Introduction and Overview'', [Электронный ресурс] : [статья] / URL
+    \bibitem{rnn1} Schmidt R. M., ''Recurrent Neural Networks (RNNs): A gentle
+    Introduction and Overview'', [Электронный ресурс] : [статья] / URL
     https://arxiv.org/pdf/1912.05911.pdf (дата обращения 18.04.2022) Загл. с
     экрана. Яз. англ.
 
-    \bibitem{rnn2} IBM Cloud Education, ''Recurrent Neural Networks'',
-    [Электронный ресурс] : [статья] / URL
-    https://www.ibm.com/cloud/learn/recurrent-neural-networks (дата обращения
-    18.04.2022) Загл. с экрана. Яз. англ.
+    \bibitem{rnnpic} Donges N., 'A Guide to RNN: Understanding Recurrent Neural
+    Networks and LSTM Networks'', [Электронный ресурс] : [статья] / URL
+    https://builtin.com/data-science/recurrent-neural-networks-and-lstm (дата
+    обращения 17.05.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{rnn2} ''Recurrent Neural Networks'', [Электронный ресурс] :
+    [статья] / URL https://www.ibm.com/cloud/learn/recurrent-neural-networks
+    (дата обращения 18.04.2022) Загл. с экрана. Яз. англ.
 
     % LSTM
     % https://arxiv.org/pdf/1909.09586.pdf
     % https://habr.com/ru/company/wunderfund/blog/331310/
 
-    \bibitem{lstm1} Ralf C. Staudemeyer, Eric Rothstein Morris, ''Understanding
-    LSTM "--- a tutorial into Long Short-Term Memory Recurrent Neural Networks
-    '', [Электронный ресурс] : [статья] / URL
-    https://arxiv.org/pdf/1909.09586.pdf (дата обращения 22.04.2022) Загл. с
-    экрана. Яз. англ.
+    \bibitem{lstm1} Staudemeyer R.C., Morris E.R., ''Understanding LSTM "--- a
+    tutorial into Long Short-Term Memory Recurrent Neural Networks '',
+    [Электронный ресурс] : [статья] / URL https://arxiv.org/pdf/1909.09586.pdf
+    (дата обращения 22.04.2022) Загл. с экрана. Яз. англ.
 
-    \bibitem{lstm2} Wunder Fund, ''LSTM – сети долгой краткосрочной памяти'',
+    \bibitem{lstm2} Fund W., ''LSTM – сети долгой краткосрочной памяти'',
     [Электронный ресурс] : [статья] / URL
     https://habr.com/ru/company/wunderfund/blog/331310/ (дата обращения
     22.04.2022) Загл. с экрана. Яз. рус.
+
+    \bibitem{torchlstm} ''LSTM'', [Электронный ресурс] : [статья] / URL
+    https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html\#torch.nn.LSTM
+    (дата обращения 17.05.2022) Загл. с экрана. Яз. англ.
 
     % Metrics
     % https://arxiv.org/ftp/arxiv/papers/1809/1809.03006.pdf
     % https://arxiv.org/ftp/arxiv/papers/2006/2006.00887.pdf
     % https://arxiv.org/pdf/1208.3145.pdf
 
-    \bibitem{metrics1} Alexei Botchkarev, ''Performance Metrics (Error Measures)
-    in Machine Learning Regression, Forecasting and Prognostics: Properties and
+    \bibitem{metrics1} Botchkarev A., ''Performance Metrics (Error Measures) in
+    Machine Learning Regression, Forecasting and Prognostics: Properties and
     Typology'', [Электронный ресурс] : [статья] / URL
     https://arxiv.org/ftp/arxiv/papers/1809/1809.03006.pdf (дата обращения
     24.04.2022) Загл. с экрана. Яз. англ.
 
-    \bibitem{metrics2} M.Z. Naser, Amir H. Alavi, ''Insights into Performance
+    \bibitem{confusionpic} Tandale S., ''Importance of Confusion matrix in
+    Machine learning and Cybersecurity'', [Электронный ресурс] : [статья] / URL
+    https://shravantandale456.medium.com/importance-of-confusion-matrix-in-machine-learning-and-cybersecurity-80e67f5858fb
+    (дата обращения 17.05.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{metrics2} Naser M.Z., Alavi A.H., ''Insights into Performance
     Fitness and Error Metrics for Machine Learning'', [Электронный ресурс] :
     [статья] / URL https://arxiv.org/ftp/arxiv/papers/2006/2006.00887.pdf (дата
     обращения 24.04.2022) Загл. с экрана. Яз. англ.
 
-    \bibitem{metrics3} Stijn Van dongen, Anton J. Enright, ''METRIC DISTANCES
-    DERIVED FROM COSINE SIMILARITY AND PEARSON AND SPEARMAN CORRELATIONS'',
-    [Электронный ресурс] : [статья] / URL https://arxiv.org/pdf/1208.3145.pdf
-    (дата обращения 24.04.2022) Загл. с экрана. Яз. англ.
+    \bibitem{metrics3} Enright A. J., ''Metric distances derived from cosine
+    similarity and pearson and spearman correlations'', [Электронный ресурс] :
+    [статья] / URL https://arxiv.org/pdf/1208.3145.pdf (дата обращения
+    24.04.2022) Загл. с экрана. Яз. англ.
 
     % Cross Entropy Loss
     % https://arxiv.org/pdf/2011.05231.pdf
     % https://arxiv.org/pdf/2006.14822.pdf
 
-    \bibitem{celoss1} Elliott Gordon-Rodriguez, Gabriel Loaiza-Ganem и т.д.,
-    ''Uses and Abuses of the Cross-Entropy Loss: Case Studies in Modern Deep
-    Learning'', [Электронный ресурс] : [статья] / URL
-    https://arxiv.org/pdf/2011.05231.pdf (дата обращения 27.04.2022) Загл. с
-    экрана. Яз. англ.
+    \bibitem{celoss1} Gordon-Rodriguez E., Loaiza-Ganem G. и т.д., ''Uses and
+    Abuses of the Cross-Entropy Loss: Case Studies in Modern Deep Learning'',
+    [Электронный ресурс] : [статья] / URL https://arxiv.org/pdf/2011.05231.pdf
+    (дата обращения 27.04.2022) Загл. с экрана. Яз. англ.
 
-    \bibitem{celoss2} Shruti Jadon, ''A survey of loss functions for semantic
+    \bibitem{celoss2} Jadon S., ''A survey of loss functions for semantic
     segmentation'', [Электронный ресурс] : [статья] / URL
     https://arxiv.org/pdf/2006.14822.pdf (дата обращения 27.04.2022) Загл. с
     экрана. Яз. англ.
+
+    \bibitem{torchcel} ''CrossEntropyLoss'', [Электронный ресурс] : [статья] /
+    URL https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html
+    \\ \#torch.nn.CrossEntropyLoss (дата обращения 17.05.2022) Загл. с экрана.
+    Яз. англ.
 
     % Relu
     % https://arxiv.org/pdf/1803.08375.pdf
     % https://arxiv.org/pdf/2107.09370.pdf
 
-    \bibitem{relu1} Abien Fred M. Agarap, ''Deep Learning using Rectified Linear
-    Units (ReLU)'', [Электронный ресурс] : [статья] / URL
+    \bibitem{relu1} Agarap A. M., ''Deep Learning using Rectified Linear Units
+    (ReLU)'', [Электронный ресурс] : [статья] / URL
     https://arxiv.org/pdf/1803.08375.pdf (дата обращения 28.04.2022) Загл. с
     экрана. Яз. англ.
 
-    \bibitem{relu2} Pierre Stock, Remi Gribonval, ''AN EMBEDDING OF RELU
-    NETWORKS AND AN ANALYSIS OF THEIR IDENTIFIABILITY'', [Электронный ресурс] :
-    [статья] / URL https://arxiv.org/pdf/2107.09370.pdf (дата обращения
-    28.04.2022) Загл. с экрана. Яз. англ.
+    \bibitem{relu2} Stock P., Gribonval R., ''An embedding of ReLU networks and
+    an analysis of their identifiability'', [Электронный ресурс] : [статья] /
+    URL https://arxiv.org/pdf/2107.09370.pdf (дата обращения 28.04.2022) Загл. с
+    экрана. Яз. англ.
     
+    \bibitem{relu3} ''ReLU'', [Электронный ресурс] : [статья] / URL
+    https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html (дата обращения
+    17.05.2022) Загл. с экрана. Яз. англ.
 
+    % applications
     % https://mobidev.biz/blog/exploring-deep-learning-image-captioning
-    \bibitem{applications} Diana Malyk, ''Exploring Deep Learning Image
+    \bibitem{applications} Malyk D., ''Exploring Deep Learning Image
     Captioning'', [Электронный ресурс] : [статья] / URL
     https://mobidev.biz/blog/exploring-deep-learning-image-captioning (дата
     обращения 30.04.2022) Загл. с экрана. Яз. англ.
 
+    \bibitem{apppic} Yang X., Zhang H. и т.д., ''Fashion Captioning: Towards
+    Generating Accurate Descriptions with Semantic Rewards'', [Электронный
+    ресурс] : [статья] / URL https://arxiv.org/pdf/2008.02693.pdf (дата
+    обращения 17.05.2022) Загл. с экрана. Яз. англ.
+
     % Python
     % https://arxiv.org/pdf/2104.00254.pdf
-    \bibitem{python} Zachary DeVito, Jason Ansel и т.д., ''USING PYTHON FOR MODEL
-    INFERENCE IN DEEP LEARNING'', [Электронный ресурс] : [статья] / URL
+    \bibitem{python} DeVito Z., Ansel J. и т.д., ''Using Python for model
+    inference in deep learning'', [Электронный ресурс] : [статья] / URL
     https://arxiv.org/pdf/2104.00254.pdf (дата обращения 2.05.2022) Загл. с
     экрана. Яз. англ.
     % PIL
     % https://pypi.org/project/Pillow/
-    \bibitem{pil} Alex Clark и т.д., ''Pillow'', [Электронный ресурс] : [статья]
-    / URL https://pillow.readthedocs.io/en/stable/ (дата обращения 2.05.2022)
+    \bibitem{pil} Clark A. и т.д., ''Pillow'', [Электронный ресурс] : [статья] /
+    URL https://pillow.readthedocs.io/en/stable/ (дата обращения 2.05.2022)
     Загл. с экрана. Яз. англ.
     % Pandas
     % https://vk.com/doc44301783_570833604?hash=LGYlshZgzLYwudBTZs1qE7XYb8l9puWt8uHniCTh6Zs&dl=icFVk5kLe613AvNLwIwLfFlkaiWT6odCWzRf3ZMgQXL
@@ -1295,26 +1403,26 @@
     "--- 482 с. "--- ISBN 978-5-97060-315-4, 978-1-449-31979-3.
     % Spacy
     % https://arxiv.org/pdf/2106.07799.pdf
-    \bibitem{spacy} Hannah Eyre, Alec B Chapman и т.д., ''Launching into clinical
+    \bibitem{spacy} Eyre H., Chapman A. B. и т.д., ''Launching into clinical
     space with medspaCy: a new clinical text processing toolkit in Python'',
     [Электронный ресурс] : [статья] / URL https://arxiv.org/pdf/2106.07799.pdf
     (дата обращения 2.05.2022) Загл. с экрана. Яз. англ.
     % PyTorch
-    \bibitem{pytorch} Adam Paszke, Sam Gross и т.д., ''PyTorch: An Imperative
+    \bibitem{pytorch} Paszke A., Gross S. и т.д., ''PyTorch: An Imperative
     Style, High-Performance Deep Learning Library'', [Электронный ресурс] :
     [статья] / URL https://arxiv.org/pdf/1912.01703.pdf (дата обращения
     2.05.2022) Загл. с экрана. Яз. англ.
     % Torchvision
 
     % Dataset
-    \bibitem{dataset1} Vikram Mullachery, Vishal Motwani, ''Image Captioning'',
+    \bibitem{dataset1} Mullachery V., Motwani V., ''Image Captioning'',
     [Электронный ресурс] : [статья] / URL https://arxiv.org/pdf/1805.09137.pdf
     (дата обращения 8.05.2022) Загл. с экрана. Яз. англ.
 
-    \bibitem{dataset2} Kelvin Xu, Jimmy Lei Ba и т.д., ''Show, Attend and
-    Tell: Neural Image Caption Generation with Visual Attention'', [Электронный
-    ресурс] : [статья] / URL https://arxiv.org/pdf/1502.03044.pdf (дата
-    обращения 8.05.2022) Загл. с экрана. Яз. англ.
+    \bibitem{dataset2} Xu K., Kiros R. и т.д., ''Show, Attend and Tell: Neural
+    Image Caption Generation with Visual Attention'', [Электронный ресурс] :
+    [статья] / URL https://arxiv.org/pdf/1502.03044.pdf (дата обращения
+    8.05.2022) Загл. с экрана. Яз. англ.
 
     \bibitem{dataset3} ADITYAJN105, ''Flickr 8k Dataset '', [Электронный ресурс]
     : [статья] / URL https://www.kaggle.com/datasets/adityajn105/flickr8k (дата
@@ -1322,20 +1430,27 @@
 
     % model
 
-    \bibitem{inception} Pytorch Team, ''INCEPTION_V3'', [Электронный ресурс] :
-    [статья] / URL https://pytorch.org/hub/pytorch_vision_inception_v3/ (дата
-    обращения 8.05.2022) Загл. с экрана. Яз. англ.
+    %architecture pic
+    % http://shikib.com/captioning.html
+    
+    \bibitem{architecture} Mehri S., ''Image Captioning'', [Электронный ресурс]
+    : [статья] / URL http://shikib.com/captioning.html (дата обращения
+    14.04.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{inception} ''Inception_v3'', [Электронный ресурс] : [статья] / URL
+    https://pytorch.org/hub/pytorch_vision_inception_v3/ (дата обращения
+    8.05.2022) Загл. с экрана. Яз. англ.
 
     % hyperparams
 
-    \bibitem{embedding} Adam Schwab, ''Embeddings: A Matrix of Meaning'',
+    \bibitem{embedding} Schwab A., ''Embeddings: A Matrix of Meaning'',
     [Электронный ресурс] : [статья] / URL
     https://petuum.medium.com/embeddings-a-matrix-of-meaning-4de877c9aa27 (дата
     обращения 8.05.2022) Загл. с экрана. Яз. англ.
 
-    \bibitem{learningrate} Zelun Luo, Boya Peng и т.д., ''Show, Discriminate,
-    and Tell: A Discriminatory Image Captioning Model with Deep Neural
-    Networks'', [Электронный ресурс] : [статья] / URL
+    \bibitem{learningrate} Luo Z., Peng B. и т.д., ''Show, Discriminate, and
+    Tell: A Discriminatory Image Captioning Model with Deep Neural Networks'',
+    [Электронный ресурс] : [статья] / URL
     https://web.stanford.edu/class/cs231a/prev_projects_2016/cs231a.pdf (дата
     обращения 8.05.2022) Загл. с экрана. Яз. англ.
 
@@ -1346,21 +1461,56 @@
     http://ritter.ist.psu.edu/papers/ritterS01.pdf (дата обращения 12.05.2022)
     Загл. с экрана. Яз. англ.
 
+    % frameworks
+    \bibitem{fwtf} ''An open-source software library for Machine Intelligence''
+    [Электронный ресурс] : [сайт] / URL: https://www.tensorflow.org (дата
+    обращения 17.05.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{fwpytorch} ''An open source machine learning framework that
+    accelerates the path from research prototyping to production deployment.''
+    [Электронный ресурс] : [сайт] / URL: https://pytorch.org/ (дата обращения
+    17.05.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{fwmxnet} ''A flexible and efficient library for deep learning''
+    [Электронный ресурс] : [сайт] / URL:
+    https://mxnet.incubator.apache.org/versions/1.9.0/ (дата обращения
+    17.05.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{fwtvm} ''Apache TVM'' [Электронный ресурс] : [сайт] / URL:
+    https://tvm.apache.org/ (дата обращения 17.05.2022) Загл. с экрана. Яз.
+    англ.
+
+    \bibitem{fwjax} ''JAX reference documentation'' [Электронный ресурс] :
+    [сайт] / URL: https://jax.readthedocs.io/en/latest/index.html (дата
+    обращения 17.05.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{fwnumpy} ''NumPy. The fundamental package for scientific computing
+    with Python'' [Электронный ресурс] : [сайт] / URL: https://numpy.org/ (дата
+    обращения 17.05.2022) Загл. с экрана. Яз. англ.
+
+    \bibitem{fwpandas} ''pandas'' [Электронный ресурс] : [сайт] / URL:
+    https://pandas.pydata.org/ (дата обращения 17.05.2022) Загл. с экрана. Яз.
+    англ.
+
+    \bibitem{fwjupyter} ''Jupyter. Free software, open standards, and web
+    services for interactive computing across all programming languages''
+    [Электронный ресурс] : [сайт] / URL: https://jupyter.org/ (дата обращения
+    17.05.2022) Загл. с экрана. Яз. англ.
 
 \end{thebibliography}
 
 \appendix
 
-    \section{Код getloader.py}
-    \inputminted[fontsize=\footnotesize]{text}{model-ver-2/getloader.py}
+    \section{Код \texttt{getloader.py}}
+    \inputminted{py}{model-ver-2/getloader.py}
 
-    \section{Код model.py}
-    \inputminted[fontsize=\footnotesize]{text}{model-ver-2/model.py}
+    \section{Код \texttt{model.py}}
+    \inputminted{py}{model-ver-2/model.py}
 
-    \section{Код train.py}
-    \inputminted[fontsize=\footnotesize]{text}{model-ver-2/train.py}
+    \section{Код \texttt{train.py}}
+    \inputminted{py}{model-ver-2/train.py}
 
-    \section{Код checkmetric.py}
-    \inputminted[fontsize=\footnotesize]{text}{model-ver-2/checkmetric.py}
+    \section{Код \texttt{checkmetric.py}}
+    \inputminted{py}{model-ver-2/checkmetric.py}
 
 \end{document}
